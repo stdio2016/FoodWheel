@@ -1,0 +1,227 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodWheel</title>
+<style>
+@keyframes text-enter {
+  0% {
+    transform: translateX(100px);
+    opacity: 0%;
+  }
+  100% {
+    transform: none;
+    opacity: 100%;
+  }
+}
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.spaPage {
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+#spaHomePage {
+  text-align: center;
+}
+.text-enter1 {
+  display: inline-block;
+  animation: text-enter 0.5s;
+}
+.text-enter2 {
+  display: inline-block;
+  animation: text-enter 0.5s 0.2s backwards;
+}
+.text-enter3 {
+  display: inline-block;
+  animation: text-enter 0.5s 0.4s backwards;
+}
+html {
+  box-sizing: border-box;
+  background-color: #ffc;
+}
+.button, button {
+  border-radius: 5px;
+  padding: 5px;
+}
+.blue-button {
+  color: white;
+  background: blue;
+}
+button.selected {
+  background: lime;
+  color: black;
+}
+button.selected::before {
+  content: '✔';
+}
+#sectors{
+  animation-fill-mode: forwards;
+  transform-origin: 160px 160px;
+}
+text {
+  text-anchor: middle;
+}
+.rotating {
+  animation: rotate infinite 1s;
+}
+</style>
+<script src="roulette.js?a=4" charset="utf-8"></script>
+<script>
+function start(x) {
+  document.getElementById('spaHomePage').hidden = true;
+  document.getElementById('spaSelect').hidden = false;
+}
+function toggleButton() {
+  event.target.classList.toggle('selected');
+}
+function installToggle(buttonList) {
+  buttonList.querySelectorAll('button').forEach(function (x) {
+    x.onclick = toggleButton;
+  });
+}
+addEventListener('load', function () {
+  installToggle(eatWhat);
+  installToggle(eatAtWhere);
+  installToggle(eatRequire);
+});
+function convertToQuery(eatList) {
+  var eltList = eatList.querySelectorAll('button.selected');
+  var ans = [];
+  eltList.forEach(function (x) {
+    ans.push(x.textContent);
+  });
+  return ans;
+}
+function helpselect() {
+  if (convertToQuery(eatAtWhere).length == 0) {
+    alert('請選擇地點');
+    return;
+  }
+  document.getElementById('spaSelect').hidden = true;
+  document.getElementById('spaRecommending').hidden = false;
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', 'api/getrestaurant');
+  xhr.onload = function () {
+    if (xhr.status != 200) {
+      alert('伺服器出錯了！');
+      document.getElementById('spaSelect').hidden = false;
+      document.getElementById('spaRecommending').hidden = true;
+      return ;
+    }
+    handleGetRestaurant(JSON.parse(xhr.response));
+  };
+  
+  xhr.send(JSON.stringify({
+    eatAtWhere: convertToQuery(eatAtWhere),
+    eatWhat: convertToQuery(eatWhat),
+    eatRequire: convertToQuery(eatRequire)
+  }));
+}
+function handleGetRestaurant(response) {
+  if (response.restaurants.length == 0) {
+    alert('很抱歉，我們找不到任何符合的餐廳');
+    document.getElementById('spaSelect').hidden = false;
+    document.getElementById('spaRecommending').hidden = true;
+    return ;
+  }
+  document.getElementById('spaRecommending').hidden = true;
+  document.getElementById('spaWheel').hidden = false;
+  initRoulette(response.restaurants, sectors);
+  document.getElementById('outcome').textContent = '';
+  document.getElementById('backButton').hidden = false;
+  document.getElementById('feedbackButtons').hidden = true;
+}
+function rollTo(ans) {
+  document.getElementById('outcome').textContent = '你轉到了' + ans + '。滿意嗎？';
+  document.getElementById('backButton').hidden = true;
+  document.getElementById('feedbackButtons').hidden = false;
+}
+function backToSelect() {
+  document.getElementById('spaSelect').hidden = false;
+  document.getElementById('spaWheel').hidden = true;
+}
+</script>
+</head>
+<body>
+<div id='spaHomePage' class='spaPage'>
+  <h1>
+    <span class='text-enter1'>FoodWheel</span>
+  </h1>
+  <p>
+    <span class='text-enter2'>用轉盤解決你選擇下一餐的障礙</span>
+  </p>
+  <div>
+    <a href='javascript:start()' class='text-enter3 button blue-button'>請按我</a>
+  </div>
+</div>
+<div id='spaSelect' class='spaPage' hidden>
+  <p>你想去哪吃？</p>
+  <div id='eatAtWhere'>
+    <button>公館</button>
+    <button>118巷</button>
+  </div>
+  <p>你想吃什麼？</p>
+  <div id='eatWhat'>
+    <button>不知道</button>
+    <button>雞</button>
+    <button>豬</button>
+    <button>牛</button>
+    <button>飯</button>
+    <button>麵</button>
+    <button>水餃</button>
+    <button>中式</button>
+    <button>西式</button>
+    <button>日式</button>
+  </div>
+  <p>有什麼需求嗎？</p>
+  <div id='eatRequire'>
+    <button>要吃土了</button>
+    <button>不吃雞</button>
+    <button>不吃豬</button>
+    <button>不吃牛</button>
+    <button>我怕辣</button>
+  </div>
+  <p>
+    <button class='blue-button' onclick='helpselect()'>繼續</button>
+  </p>
+</div>
+<div id='spaRecommending' class='spaPage' hidden style='margin-top: 100px; text-align:center;'>
+  <p>請稍候，系統正在尋找適合的餐廳...</p>
+  <div>
+    <svg height=50 width=50>
+      <path fill='green' class=rotating style='transform-origin:25px 25px;' d='M25 0A25 25 180 0 1 25 50L25 45A20 20 180 0 0 25 5Z'/>
+    </svg>
+  </div>
+</div>
+<div id='spaWheel' class='spaPage' hidden style='text-align:center;'>
+  <p>已為你找到以下幾間餐廳，按下「給我轉」，系統就會隨機選擇。
+  如果有你不喜歡的餐廳，可以按下轉盤上的餐廳名稱，將其停用</p>
+  <svg viewBox='0 0 320 300'>
+    <g id='sectors'>
+    </g>
+    <g onclick='roll()'>
+      <circle cx='160' cy='160' r='40' fill='silver'/>
+      <text x='160' y='165'>給我轉！</text>
+    </g>
+    <path d='M160 20l-8-15h16Z' />
+  </svg>
+  <p id='outcome'></p>
+  <div hidden id=feedbackButtons>
+    <button type="button" onclick=''>是！</button>
+    <button type="button" onclick='roll()'>否，請重抽</button>
+    <button type="button" onclick='backToSelect()'>否，我要重填</button>
+  </div>
+  <div id=backButton>
+    <button type="button" onclick='backToSelect()'>返回重填</button>
+  </div>
+</div>
+</body>
+</html>

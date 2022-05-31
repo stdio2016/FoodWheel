@@ -1,0 +1,122 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+#sectors{
+  animation-fill-mode: forwards;
+  transform-origin: 160px 200px;
+}
+text {
+  text-anchor: middle;
+}
+</style>
+</head>
+<body>
+<svg viewBox='0 0 320 340'>
+  <text x='160' y='15'>晚餐要吃哪裡？</text>
+  <text x='160' y='34' id='rollGo'>？？？</text>
+  <g id='sectors'>
+  </g>
+  <a href='javascript:roll()'>
+    <circle cx='160' cy='200' r='40' fill='silver'/>
+    <text x='160' y='205'>給我轉！</text>
+  </a>
+  <path d='M160 60l-8-15h16Z' />
+</svg>
+<script>
+var list = ["I'm pasta", '大李', '親來', '28', '巷子口', '馬祖', '唯雞館', '合益佳', '59', '郭董'];
+//var list = ['火腿蛋吐司', '起司蛋餅', '鮭魚吐司'];
+var n = list.length;
+var angle=360/n;
+var c_x = 160, c_y = 200;
+var r_mid = 60;
+var r_big = 140;
+var disabled = [];
+function genRoulette() {
+  for (var i = 0; i < n; i++) {
+    var elt = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    var theta = Math.PI * 2 / n * -0.5;
+    var ax = Math.cos(theta) * r_mid + c_x;
+    var ay = Math.sin(theta) * r_mid + c_y;
+    var bx = Math.cos(theta) * r_big + c_x;
+    var by = Math.sin(theta) * r_big + c_y;
+    theta = Math.PI * 2 / n * 0.5;
+    var cx = Math.cos(theta) * r_big + c_x;
+    var cy = Math.sin(theta) * r_big + c_y;
+    var dx = Math.cos(theta) * r_mid + c_x;
+    var dy = Math.sin(theta) * r_mid + c_y;
+    elt.setAttribute('d',
+      'M'+bx+' '+by+
+      'A'+r_big+' '+r_big+' '+angle+' 0 1 '+cx+' '+cy+
+      'L'+dx+' '+dy+
+      'A'+r_mid+' '+r_mid+' '+angle+' 0 0 '+ax+' '+ay+'Z');
+    elt.setAttribute('fill', 'hsl('+Math.floor(i*360/n)+',80%,70%)');
+    var txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', (r_big+r_mid)/2 + c_x);
+    txt.setAttribute('y', 0 + c_y + 5);
+    txt.textContent = list[i];
+    var g = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+    g.style.transform = 'rotate('+((i+0.5)*360/n-90)+'deg)';
+    g.style.transformOrigin = c_x+'px '+c_y+'px';
+    g.setAttribute('href', 'javascript:toggleItem('+i+')');
+    g.appendChild(elt);
+    g.appendChild(txt);
+    sectors.appendChild(g);
+    disabled.push(false);
+  }
+}
+genRoulette();
+function toggleItem(i) {
+  var sector = sectors.children[i];
+  if (disabled[i]) {
+    sector.children[0].setAttribute('fill', 'hsl('+Math.floor(i*360/n)+',80%,70%)');
+  }
+  else {
+    sector.children[0].setAttribute('fill', 'gray');
+  }
+  disabled[i] = !disabled[i];
+}
+var lastAngle = 0;
+var rolling = false;
+function roll() {
+  if (rolling) return;
+  if (disabled.every(function(x){return x;})) {
+    alert('請選擇至少一項');
+    return;
+  }
+  rolling = true;
+  var r = 0;
+  var ans = 0;
+  var newAngle = 0;
+  // don't choose disabled one
+  do {
+    r = Math.random();
+    newAngle = (r*720 + 1440 + lastAngle);
+    ans = Math.floor(n-newAngle%360/360*n) % n;
+  } while (disabled[ans]) ;
+
+  sectors.animate([ { transform: 'rotate('+lastAngle+'deg)', easing: 'cubic-bezier(.08,0,.7,1)' },
+                    { transform: 'rotate('+newAngle+'deg)' }],
+                  2000 + r*500);
+  lastAngle = newAngle % 360;
+  sectors.style.transform = 'rotate('+lastAngle+'deg)';
+  setTimeout(function () {
+    rolling = false;
+    var ans = Math.floor(n-lastAngle/360*n) % n;
+    rollGo.textContent = list[ans];
+    var xhr = new XMLHttpRequest();
+    var req = 'result=' + encodeURIComponent(list[ans]);
+    var cnt = 0;
+    for (var i = 0; i < n; i++) {
+      if (disabled[i]) { 
+        req += '&disabled['+cnt+']'+'='+encodeURIComponent(list[i]);
+        cnt += 1;
+      }
+    }
+    xhr.open('GET', '/api/selected?' + req);
+    xhr.send();
+  }, 2000 + r*500);
+}
+</script>
+</body>
+</html>
