@@ -1,23 +1,24 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <HomePage></HomePage>
+  );
+}
+
+function HomePage() {
+  return (
+    <div id='spaHomePage' className='spaPage'>
+      <h1>
+        <span className='text-enter1'>FoodWheel</span>
+      </h1>
+      <p>
+        <span className='text-enter2'>用轉盤解決你選擇下一餐的障礙</span>
+      </p>
+      <div>
+        <button className='text-enter3 button blue-button'>請按我</button>
+      </div>
     </div>
   );
 }
