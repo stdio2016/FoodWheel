@@ -10,17 +10,16 @@ export function ToggleButton({children, select, onChange}) {
 }
 
 export function ToggleButtonList({list, select, onChange}) {
-  select = select || new Set();
+  select = select || [];
   function handleChange(index, sel) {
-    select = new Set(select);
-    if (sel) select.delete(index);
-    else select.add(index);
+    if (sel) select = select.filter(x => x !== index);
+    else select = select.concat([index]);
     onChange(select);
   }
   var buttons = list.map((item) => (
     <ToggleButton
       key={item}
-      select={select.has(item)}
+      select={select.includes(item)}
       onChange={sel => handleChange(item, !sel)}
     >{item}</ToggleButton>
   ));

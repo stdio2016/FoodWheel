@@ -5,10 +5,14 @@ import { ToggleButtonList } from './ToggleButton';
 
 function App() {
   var [page, setPage] = useState(1);
+  function helpselect(x) {
+    setPage(3);
+    console.log(x);
+  }
   return (
     <>
       <HomePage show={page===1} start={()=>setPage(2)}></HomePage>
-      <SelectPage show={page===2} helpselect={()=>setPage(3)}></SelectPage>
+      <SelectPage show={page===2} helpselect={helpselect}></SelectPage>
       <h1 style={{textAlign:'center'}} hidden={page!==3}>TODO</h1>
     </>
   );
@@ -33,9 +37,20 @@ function HomePage({show, start}) {
 }
 
 function SelectPage({show, helpselect}) {
-  var [whereToEat, setWhereToEat] = useState();
-  var [whatToEat, setWhatToEat] = useState();
-  var [requirements, setRequirements] = useState();
+  var [whereToEat, setWhereToEat] = useState([]);
+  var [whatToEat, setWhatToEat] = useState([]);
+  var [requirements, setRequirements] = useState([]);
+  function sendFormHelper() {
+    if (whereToEat.length === 0) {
+      alert('請選擇至少一個地點');
+      return ;
+    }
+    helpselect({
+      whereToEat: whereToEat,
+      whatToEat: whatToEat,
+      requirements: requirements
+    });
+  }
   return (
     <div id='spaSelect' className='spaPage' hidden={!show}>
       <p>你想去哪吃？</p>
@@ -47,7 +62,7 @@ function SelectPage({show, helpselect}) {
       <p>你想吃什麼？</p>
       <ToggleButtonList
         select={whatToEat}
-        list={['雞','豬','牛','飯','麵','水餃','中式','西式','日式']}
+        list={['不知道', '雞','豬','牛','飯','麵','水餃','中式','西式','日式']}
         onChange={setWhatToEat}
       />
       <p>有什麼需求嗎？</p>
@@ -57,7 +72,7 @@ function SelectPage({show, helpselect}) {
         onChange={setRequirements}
       />
       <p>
-        <button className='blue-button' onClick={helpselect}>繼續</button>
+        <button className='blue-button' onClick={sendFormHelper}>繼續</button>
       </p>
     </div>
   );
