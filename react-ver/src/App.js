@@ -1,19 +1,25 @@
 //import logo from './logo.svg';
 import './App.css';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import { ToggleButtonList } from './ToggleButton';
 
 function App() {
-  var [page, setPage] = useState(1);
-  function helpselect(x) {
-    setPage(3);
-    console.log(x);
+  var [page, setPage] = useState({page:1});
+  function helpselect(form) {
+    setPage({page: 3, form: form});
+  }
+  function handleGetRestaurant(result) {
+    setPage({page: 4, result: result});
+  }
+  function backToSelect() {
+    setPage({page:2});
   }
   return (
     <>
-      <HomePage show={page===1} start={()=>setPage(2)}></HomePage>
-      <SelectPage show={page===2} helpselect={helpselect}></SelectPage>
-      <h1 style={{textAlign:'center'}} hidden={page!==3}>TODO</h1>
+      <HomePage show={page.page===1} start={()=>setPage({page:2})} />
+      <SelectPage show={page.page===2} helpselect={helpselect} />
+      <RecommendingPage show={page.page===3} form={page.form} handleGetRestaurant={handleGetRestaurant}/>
+      <WheelPage show={page.page===4} result={page.result} backToSelect={backToSelect}/>
     </>
   );
 }
@@ -74,6 +80,40 @@ function SelectPage({show, helpselect}) {
       <p>
         <button className='blue-button' onClick={sendFormHelper}>繼續</button>
       </p>
+    </div>
+  );
+}
+
+function RecommendingPage({show, form, handleGetRestaurant}) {
+  useEffect(() => {
+    if (!show) return;
+    console.log('submit form', form);
+    fakeRecommender(form, handleGetRestaurant);
+  });
+  return (
+    <div id='spaRecommending' className='spaPage' hidden={!show} style={{marginTop: '100px', textAlign:'center'}}>
+      <p>請稍候，系統正在尋找適合的餐廳...</p>
+      <div>
+        <svg height={50} width={50}>
+          <path fill='green' className='rotating' style={{transformOrigin:'25px 25px'}} d='M25 0A25 25 180 0 1 25 50L25 45A20 20 180 0 0 25 5Z'/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function fakeRecommender(form, callback) {
+  setTimeout(() => callback(form), 1000);
+}
+
+function WheelPage({show, result, backToSelect}) {
+  return (
+    <div id='spaWheel' className='spaPage' hidden={!show} style={{textAlign:'center'}}>
+      <p>已為你找到以下幾間餐廳，按下「給我轉」，系統就會隨機選擇。如果有你不喜歡的餐廳，可以按下轉盤上的餐廳名稱，將其停用</p>
+      <p id='outcome'>測試中：{JSON.stringify(result)}</p>
+      <div id='backButton'>
+        <button type="button" className='red-button' onClick={backToSelect}>返回重填</button>
+      </div>
     </div>
   );
 }

@@ -88,6 +88,10 @@ html {
   color: white;
   background: blue;
 }
+.red-button {
+  color: white;
+  background: red;
+}
 button.selected {
   background: lime;
   color: black;
