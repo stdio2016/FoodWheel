@@ -1,6 +1,7 @@
 //import logo from './logo.svg';
 import './App.css';
 import {useState} from 'react';
+import { ToggleButtonList } from './ToggleButton';
 
 function App() {
   var [page, setPage] = useState(1);
@@ -32,36 +33,31 @@ function HomePage({show, start}) {
 }
 
 function SelectPage({show, helpselect}) {
+  var [whereToEat, setWhereToEat] = useState();
+  var [whatToEat, setWhatToEat] = useState();
+  var [requirements, setRequirements] = useState();
   return (
-    <div id='spaSelect' class='spaPage' hidden={!show}>
+    <div id='spaSelect' className='spaPage' hidden={!show}>
       <p>你想去哪吃？</p>
-      <div id='eatAtWhere'>
-        <button>公館</button>
-        <button>118巷</button>
-      </div>
+      <ToggleButtonList
+        select={whereToEat}
+        list={['公館','118巷']}
+        onChange={setWhereToEat}
+      />
       <p>你想吃什麼？</p>
-      <div id='eatWhat'>
-        <button>不知道</button>
-        <button>雞</button>
-        <button>豬</button>
-        <button>牛</button>
-        <button>飯</button>
-        <button>麵</button>
-        <button>水餃</button>
-        <button>中式</button>
-        <button>西式</button>
-        <button>日式</button>
-      </div>
+      <ToggleButtonList
+        select={whatToEat}
+        list={['雞','豬','牛','飯','麵','水餃','中式','西式','日式']}
+        onChange={setWhatToEat}
+      />
       <p>有什麼需求嗎？</p>
-      <div id='eatRequire'>
-        <button>要吃土了</button>
-        <button>不吃雞</button>
-        <button>不吃豬</button>
-        <button>不吃牛</button>
-        <button>我怕辣</button>
-      </div>
+      <ToggleButtonList
+        select={requirements}
+        list={['要吃土了','不吃雞','不吃豬','不吃牛','我怕辣']}
+        onChange={setRequirements}
+      />
       <p>
-        <button class='blue-button' onClick={helpselect}>繼續</button>
+        <button className='blue-button' onClick={helpselect}>繼續</button>
       </p>
     </div>
   );
