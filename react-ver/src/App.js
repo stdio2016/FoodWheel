@@ -2,6 +2,7 @@
 import './App.css';
 import {useEffect, useState} from 'react';
 import { ToggleButtonList } from './ToggleButton';
+import { Roulette } from './Roulette';
 
 function App() {
   var [page, setPage] = useState({page:1});
@@ -9,17 +10,20 @@ function App() {
     setPage({page: 3, form: form});
   }
   function handleGetRestaurant(result) {
-    setPage({page: 4, result: result});
+    setPage({page: 4, result: result, disabled: {}});
   }
   function backToSelect() {
     setPage({page:2});
+  }
+  function changeResult(result, disabled) {
+    setPage({page: 4, result: result, disabled: disabled});
   }
   return (
     <>
       <HomePage show={page.page===1} start={()=>setPage({page:2})} />
       <SelectPage show={page.page===2} helpselect={helpselect} />
       <RecommendingPage show={page.page===3} form={page.form} handleGetRestaurant={handleGetRestaurant}/>
-      <WheelPage show={page.page===4} result={page.result} backToSelect={backToSelect}/>
+      <WheelPage show={page.page===4} result={page.result} disabled={page.disabled} changeResult={changeResult} backToSelect={backToSelect}/>
     </>
   );
 }
@@ -103,13 +107,25 @@ function RecommendingPage({show, form, handleGetRestaurant}) {
 }
 
 function fakeRecommender(form, callback) {
-  setTimeout(() => callback(form), 1000);
+  var result = [
+    {id: '1', name: '餐廳1'},
+    {id: '2', name: '餐廳2'},
+    {id: '3', name: '這家餐廳的名稱非常的長'},
+  ];
+  setTimeout(() => callback(result), 1000);
 }
 
-function WheelPage({show, result, backToSelect}) {
+function WheelPage({show, result, disabled, backToSelect, changeResult}) {
   return (
     <div id='spaWheel' className='spaPage' hidden={!show} style={{textAlign:'center'}}>
       <p>已為你找到以下幾間餐廳，按下「給我轉」，系統就會隨機選擇。如果有你不喜歡的餐廳，可以按下轉盤上的餐廳名稱，將其停用</p>
+      <Roulette
+        list={show ? result : []}
+        disabled={disabled}
+        onToggle={id => {
+          changeResult(result, {...disabled, [id]:!disabled[id]})
+        }}
+      />
       <p id='outcome'>測試中：{JSON.stringify(result)}</p>
       <div id='backButton'>
         <button type="button" className='red-button' onClick={backToSelect}>返回重填</button>
