@@ -10,20 +10,17 @@ function App() {
     setPage({page: 3, form: form});
   }
   function handleGetRestaurant(result) {
-    setPage({page: 4, result: result, disabled: {}});
+    setPage({page: 4, result: result});
   }
   function backToSelect() {
     setPage({page:2});
-  }
-  function changeResult(result, disabled) {
-    setPage({page: 4, result: result, disabled: disabled});
   }
   return (
     <>
       <HomePage show={page.page===1} start={()=>setPage({page:2})} />
       <SelectPage show={page.page===2} helpselect={helpselect} />
       <RecommendingPage show={page.page===3} form={page.form} handleGetRestaurant={handleGetRestaurant}/>
-      <WheelPage show={page.page===4} result={page.result} disabled={page.disabled} changeResult={changeResult} backToSelect={backToSelect}/>
+      {page.page===4 ? <WheelPage result={page.result} backToSelect={backToSelect}/> : null}
     </>
   );
 }
@@ -115,18 +112,23 @@ function fakeRecommender(form, callback) {
   setTimeout(() => callback(result), 1000);
 }
 
-function WheelPage({show, result, disabled, backToSelect, changeResult}) {
+function WheelPage({result, backToSelect}) {
+  var [disabled, setDisabled] = useState({});
+  var [spinOutcome, setSpinOutcome] = useState({angle: 0, message: '\xa0'});
   return (
-    <div id='spaWheel' className='spaPage' hidden={!show} style={{textAlign:'center'}}>
+    <div id='spaWheel' className='spaPage' style={{textAlign:'center'}}>
       <p>已為你找到以下幾間餐廳，按下「給我轉」，系統就會隨機選擇。如果有你不喜歡的餐廳，可以按下轉盤上的餐廳名稱，將其停用</p>
       <Roulette
-        list={show ? result : []}
+        list={result}
         disabled={disabled}
-        onToggle={id => {
-          changeResult(result, {...disabled, [id]:!disabled[id]})
+        angle={spinOutcome.angle}
+        onToggle={id => setDisabled({...disabled, [id]:!disabled[id]})}
+        onSpin={(angle, item) => {
+          var message = item ? '你轉到了 ' + item.name : '\xa0';
+          setSpinOutcome({angle, message});
         }}
       />
-      <p id='outcome'>測試中：{JSON.stringify(result)}</p>
+      <p id='outcome'>{spinOutcome.message}</p>
       <div id='backButton'>
         <button type="button" className='red-button' onClick={backToSelect}>返回重填</button>
       </div>

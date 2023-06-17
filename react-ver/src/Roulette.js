@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-export function Roulette({list, disabled, onToggle}) {
+export function Roulette({list, disabled, angle, onToggle, onSpin}) {
+  var [rolling, setRolling] = useState(false);
+  var sectorRef = React.createRef();
   var sectors = list.map((item, i) => 
     <RouletteItem
       key={item.id}
@@ -11,11 +13,46 @@ export function Roulette({list, disabled, onToggle}) {
       disabled={disabled[item.id]}
     />
   );
+  function roll() {
+    var n = list.length;
+    if (rolling) return;
+    for (var i = 0; i < n; i++) {
+      if (!disabled[list[i].id]) {
+        break;
+      }
+    }
+    if (i === n) {
+      alert('請至少選擇一項');
+      return ;
+    }
+    setRolling(true);
+    var ans = 0;
+    var newAngle = 0;
+    // don't choose disabled one
+    do {
+      var r = Math.random();
+      newAngle = (r*720 + 1440 + angle);
+      ans = Math.floor(n-newAngle%360/360*n) % n | 0;
+    } while (disabled[list[ans].id]) ;
+    var runTime = 2000 + r*500;
+  
+    sectorRef.current.animate([ { transform: 'rotate('+angle+'deg)', easing: 'cubic-bezier(.08,0,.7,1)' },
+                      { transform: 'rotate('+newAngle+'deg)' }],
+                    runTime);
+    newAngle = newAngle % 360;
+    onSpin(newAngle, null);
+    setTimeout(function () {
+      setRolling(false);
+      onSpin(newAngle, list[ans]);
+    }, runTime);
+  }
   return (
     <svg viewBox='0 0 320 300'>
-      <g id='sectors'>{sectors}
+      <g id='sectors' ref={sectorRef}
+        style={{transform:`rotate(${angle}deg)`}}
+      >{sectors}
       </g>
-      <g onClick={()=>{}}>
+      <g onClick={roll}>
         <circle cx='160' cy='160' r='40' fill='silver'/>
         <text x='160' y='165'>給我轉！</text>
       </g>
@@ -78,8 +115,7 @@ function RouletteItem({n, i, text, onClick, disabled}) {
       <text
         x={(r_big+r_mid)/2 + c_x}
         y={c_y + 5}
-        ref={textRef}
-        style={{fontSize:'16px'}}>{text}</text>
+        ref={textRef}>{text}</text>
     </g>
   );
 }
