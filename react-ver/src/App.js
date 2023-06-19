@@ -3,6 +3,7 @@ import './App.css';
 import {useEffect, useState} from 'react';
 import { ToggleButtonList } from './ToggleButton';
 import { Roulette } from './Roulette';
+import { RestaurantFinder, getRestaurantList } from './RestaurantFinder';
 
 function App() {
   var [page, setPage] = useState({page:1});
@@ -89,7 +90,7 @@ function RecommendingPage({show, form, handleGetRestaurant}) {
   useEffect(() => {
     if (!show) return;
     console.log('submit form', form);
-    fakeRecommender(form, handleGetRestaurant);
+    recommender(form).then(handleGetRestaurant);
   });
   return (
     <div id='spaRecommending' className='spaPage' hidden={!show} style={{marginTop: '100px', textAlign:'center'}}>
@@ -103,13 +104,15 @@ function RecommendingPage({show, form, handleGetRestaurant}) {
   );
 }
 
-function fakeRecommender(form, callback) {
-  var result = [
-    {id: '1', name: '餐廳1'},
-    {id: '2', name: '餐廳2'},
-    {id: '3', name: '這家餐廳的名稱非常的長'},
-  ];
-  setTimeout(() => callback(result), 1000);
+var restaurantsProm = getRestaurantList();
+
+async function recommender(form) {
+  var timeWait = new Promise(resolve => setTimeout(resolve, 1000));
+  var restaurants = await restaurantsProm;
+  var finder = new RestaurantFinder(restaurants);
+  var ans = finder.search(form.whereToEat);
+  await timeWait; // Make human think the computer is searching
+  return ans;
 }
 
 function WheelPage({result, backToSelect}) {
