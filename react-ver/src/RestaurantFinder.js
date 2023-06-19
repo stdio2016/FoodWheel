@@ -1,5 +1,3 @@
-import restaurantTsv from './restaurant.tsv'
-
 // JavaScript doesn't have random.sample
 function randomSample(arr, k) {
     var selected = {};
@@ -17,7 +15,10 @@ function randomSample(arr, k) {
 }
 
 export async function getRestaurantList() {
-    var res = await fetch(restaurantTsv);
+    var res = await fetch(process.env.PUBLIC_URL + '/restaurant.tsv');
+    if (res.status < 200 || res.status > 299) {
+        throw new Error('伺服器出錯了！');
+    }
     var text = await res.text();
     var lines = text.split(/\r?\n/);
     var header = lines[0].split('\t');

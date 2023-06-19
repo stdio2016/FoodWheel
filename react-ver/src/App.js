@@ -13,6 +13,11 @@ function App() {
   function handleGetRestaurant(result) {
     setPage({page: 4, result: result});
   }
+  function handleFailure(reason) {
+    alert(reason);
+    console.log(reason);
+    setPage({page: 2});
+  }
   function backToSelect() {
     setPage({page:2});
   }
@@ -20,7 +25,7 @@ function App() {
     <>
       <HomePage show={page.page===1} start={()=>setPage({page:2})} />
       <SelectPage show={page.page===2} helpselect={helpselect} />
-      <RecommendingPage show={page.page===3} form={page.form} handleGetRestaurant={handleGetRestaurant}/>
+      <RecommendingPage show={page.page===3} form={page.form} handleGetRestaurant={handleGetRestaurant} handleFailure={handleFailure}/>
       {page.page===4 ? <WheelPage result={page.result} backToSelect={backToSelect}/> : null}
     </>
   );
@@ -86,11 +91,11 @@ function SelectPage({show, helpselect}) {
   );
 }
 
-function RecommendingPage({show, form, handleGetRestaurant}) {
+function RecommendingPage({show, form, handleGetRestaurant, handleFailure}) {
   useEffect(() => {
     if (!show) return;
     console.log('submit form', form);
-    recommender(form).then(handleGetRestaurant);
+    recommender(form).then(handleGetRestaurant, handleFailure);
   });
   return (
     <div id='spaRecommending' className='spaPage' hidden={!show} style={{marginTop: '100px', textAlign:'center'}}>
@@ -104,14 +109,16 @@ function RecommendingPage({show, form, handleGetRestaurant}) {
   );
 }
 
-var restaurantsProm = getRestaurantList();
-
 async function recommender(form) {
+  var restaurantsProm = getRestaurantList();
   var timeWait = new Promise(resolve => setTimeout(resolve, 1000));
   var restaurants = await restaurantsProm;
   var finder = new RestaurantFinder(restaurants);
   var ans = finder.search(form.whereToEat);
   await timeWait; // Make human think the computer is searching
+  if (ans.length === 0) {
+    throw new Error('很抱歉，我們找不到任何符合的餐廳');
+  }
   return ans;
 }
 
