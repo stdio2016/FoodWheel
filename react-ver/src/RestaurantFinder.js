@@ -14,6 +14,10 @@ function randomSample(arr, k) {
     return ans;
 }
 
+function intersect(arr1, arr2) {
+    return arr1.filter(x => arr2.includes(x));
+}
+
 export async function getRestaurantList() {
     var res = await fetch(process.env.PUBLIC_URL + '/restaurant.tsv');
     if (res.status < 200 || res.status > 299) {
@@ -40,10 +44,27 @@ export class RestaurantFinder {
         this.restaurants = restaurants;
     }
 
-    search(places) {
+    search(places, whatToEat, requirements) {
         var ans = [];
+        var meats = ['雞', '豬', '牛'].filter(x => whatToEat.includes(x));
+        if (meats.length === 0) {
+            meats = ['雞', '豬', '牛'].filter(x => !requirements.includes('不吃' + x));
+        }
+        var rice = ['飯', '麵', '水餃'].filter(x => whatToEat.includes(x));
+        var chinese = ['中式', '西式', '日式'].filter(x => whatToEat.includes(x));
+        console.log(rice, chinese);
         this.restaurants.forEach(r => {
             if (!places.includes(r.place)) return;
+            var types = r.type.split('/');
+            if (intersect(meats, types).length === 0) {
+                return;
+            }
+            if (rice.length > 0 && intersect(rice, types).length === 0) {
+                return;
+            }
+            if (chinese.length > 0 && intersect(chinese, types).length === 0) {
+                return;
+            }
             ans.push(r);
         });
         ans = randomSample(ans, Math.min(10, ans.length));

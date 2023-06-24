@@ -110,14 +110,14 @@ function RecommendingPage({show, form, handleGetRestaurant, handleFailure}) {
 }
 
 async function recommender(form) {
-  var restaurantsProm = getRestaurantList();
   var timeWait = new Promise(resolve => setTimeout(resolve, 1000));
+  var restaurantsProm = getRestaurantList();
   var restaurants = await restaurantsProm;
   var finder = new RestaurantFinder(restaurants);
-  var ans = finder.search(form.whereToEat);
+  var ans = finder.search(form.whereToEat, form.whatToEat, form.requirements);
   await timeWait; // Make human think the computer is searching
   if (ans.length === 0) {
-    throw new Error('很抱歉，我們找不到任何符合的餐廳');
+    return Promise.reject('很抱歉，我們找不到任何符合的餐廳');
   }
   return ans;
 }
